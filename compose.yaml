@@ -1,0 +1,46 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:5000"
+    depends_on:
+      - worker
+      - db
+    restart: always
+    networks:
+      - my_network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A tasks worker --loglevel=info --hostname=worker@%h --without-gossip --without-mingle --without-heartbeat
+    depends_on:
+      - db
+    restart: always
+    networks:
+      - my_network
+
+  db:
+    image: postgres:latest
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    networks:
+      - my_network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+networks:
+  my_network:
+    driver: bridge

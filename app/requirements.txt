@@ -1,0 +1,4 @@
+flask
+celery
+psycopg2
+redis
